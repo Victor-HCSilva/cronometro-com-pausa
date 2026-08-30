@@ -1,0 +1,110 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 350px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.setup {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+}
+
+.input-group input {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.display {
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: background 0.3s;
+}
+
+#status {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+#timer {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #222;
+}
+
+#round-indicator {
+    color: #666;
+    margin-top: 10px;
+}
+
+.controls button {
+    padding: 10px 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    transition: 0.2s;
+}
+
+#startBtn {
+    background-color: #28a745;
+    color: white;
+}
+
+#startBtn:hover {
+    background-color: #218838;
+}
+
+.reset {
+    background-color: #dc3545;
+    color: white;
+}
+
+.reset:hover {
+    background-color: #c82333;
+}
+
+/* Classes de Estado */
+.working {
+    background-color: #d4edda !important;
+    color: #155724;
+}
+
+.resting {
+    background-color: #fff3cd !important;
+    color: #856404;
+}
+
+\
