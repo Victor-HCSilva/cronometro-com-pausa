@@ -4,19 +4,22 @@ let currentRound = 1;
 let timeLeft = 0;
 let isWorkPhase = true;
 
+// --- CONFIGURAÇÃO DOS SONS ---
+// Você pode substituir os links abaixo pelos caminhos dos seus arquivos locais: 'assets/sounds/nome.mp3'
+const soundWork = new Audio('./assets/sounds/work.mp3');
+const soundRest = new Audio('./assets/sounds/rest.mp3');
+const soundFinish = new Audio('./assets/sounds/finish.mp3');
+
 const displayTimer = document.getElementById('timer');
 const displayStatus = document.getElementById('status');
 const displayRounds = document.getElementById('round-indicator');
 const startBtn = document.getElementById('startBtn');
 const totalEstimateHtml = document.getElementById('totalEstimate');
 
-// Atualiza o cálculo do tempo total em tempo real ao mudar inputs
 function updateTotalEstimate() {
     const r = parseInt(document.getElementById('rounds').value);
     const w = parseInt(document.getElementById('workTime').value);
     const p = parseInt(document.getElementById('restTime').value);
-
-    // Total = (Rodadas * Trabalho) + ((Rodadas - 1) * Pausa)
     const total = (r * w) + ((r - 1) * p);
     totalEstimateHtml.innerText = total > 0 ? total : 0;
 }
@@ -44,6 +47,9 @@ function startTimer() {
     isWorkPhase = true;
     timeLeft = workTime;
 
+    // Tocar som de início
+    soundWork.play();
+
     runCycle(totalRounds, workTime, restTime);
 }
 
@@ -55,21 +61,23 @@ function runCycle(totalRounds, workTime, restTime) {
 
         if (timeLeft < 0) {
             if (isWorkPhase) {
-                // Se terminou o trabalho e ainda há rodadas, vai para pausa
                 if (currentRound < totalRounds) {
+                    // Mudar para PAUSA
                     isWorkPhase = false;
                     timeLeft = restTime;
+                    soundRest.play(); // Som de pausa
                 } else {
-                    // Fim de tudo
+                    // FIM DE TUDO
                     clearInterval(interval);
                     finish();
                     return;
                 }
             } else {
-                // Terminou a pausa, volta para o trabalho na próxima rodada
+                // Mudar para TRABALHO (nova rodada)
                 isWorkPhase = true;
                 currentRound++;
                 timeLeft = workTime;
+                soundWork.play(); // Som de início de rodada
             }
         }
 
@@ -98,7 +106,10 @@ function finish() {
     displayStatus.innerText = "Finalizado!";
     displayTimer.innerText = "00:00";
     document.querySelector('.display').className = "display";
-    alert("Treino Concluído!");
+
+    soundFinish.play(); // Som de finalização
+
+    setTimeout(() => alert("Treino Concluído!"), 500);
 }
 
 function reset() {
@@ -114,5 +125,4 @@ function reset() {
 startBtn.addEventListener('click', startTimer);
 document.getElementById('resetBtn').addEventListener('click', reset);
 
-// Inicializa o valor total ao carregar
 updateTotalEstimate();
