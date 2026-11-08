@@ -3,12 +3,15 @@ let isRunning = false;
 let currentRound = 1;
 let timeLeft = 0;
 let isWorkPhase = true;
+let runId = 0;
 
 // --- CONFIGURAÇÃO DOS SONS ---
 // Você pode substituir os links abaixo pelos caminhos dos seus arquivos locais: 'assets/sounds/nome.mp3'
+const soundStart = new Audio('./assets/sounds/startSound.mp3');
 const soundWork = new Audio('./assets/sounds/work.mp3');
 const soundRest = new Audio('./assets/sounds/rest.mp3');
 const soundFinish = new Audio('./assets/sounds/finish.mp3');
+soundWork.loop = true;
 
 const displayTimer = document.getElementById('timer');
 const displayStatus = document.getElementById('status');
@@ -46,43 +49,97 @@ function startTimer() {
     currentRound = 1;
     isWorkPhase = true;
     timeLeft = workTime;
+    const currentRunId = ++runId;
 
-    // Tocar som de início
-    soundWork.play();
-
-    runCycle(totalRounds, workTime, restTime);
+    stopSound(soundFinish);
+    runCycle(totalRounds, workTime, restTime, currentRunId);
 }
 
-function runCycle(totalRounds, workTime, restTime) {
+function runCycle(totalRounds, workTime, restTime, currentRunId) {
     updateDisplay(totalRounds);
+    playStartCue(() => startWorkPhase(totalRounds, workTime, restTime, currentRunId), currentRunId);
+}
 
+function playStartCue(onComplete, currentRunId) {
+    stopSound(soundStart);
+    let completed = false;
+    const startWork = () => {
+        if (completed) return;
+        completed = true;
+        soundStart.onended = null;
+        if (isRunning && runId === currentRunId) onComplete();
+    };
+
+    soundStart.onended = startWork;
+    soundStart.play().catch(error => {
+        console.error('Não foi possível reproduzir o som de início.', error);
+        startWork();
+    });
+}
+
+function startWorkPhase(totalRounds, workTime, restTime, currentRunId) {
+    if (!isRunning || runId !== currentRunId) return;
+
+    playSound(soundWork);
     interval = setInterval(() => {
-        timeLeft--;
-
-        if (timeLeft < 0) {
-            if (isWorkPhase) {
-                if (currentRound < totalRounds) {
-                    // Mudar para PAUSA
-                    isWorkPhase = false;
-                    timeLeft = restTime;
-                    soundRest.play(); // Som de pausa
-                } else {
-                    // FIM DE TUDO
-                    clearInterval(interval);
-                    finish();
-                    return;
-                }
-            } else {
-                // Mudar para TRABALHO (nova rodada)
-                isWorkPhase = true;
-                currentRound++;
-                timeLeft = workTime;
-                soundWork.play(); // Som de início de rodada
-            }
+        if (timeLeft <= 1) {
+            clearInterval(interval);
+            timeLeft = 0;
+            updateDisplay(totalRounds);
+            endWorkPhase(totalRounds, workTime, restTime, currentRunId);
+            return;
         }
 
+        timeLeft--;
         updateDisplay(totalRounds);
     }, 1000);
+}
+
+function endWorkPhase(totalRounds, workTime, restTime, currentRunId) {
+    stopSound(soundWork);
+
+    if (currentRound >= totalRounds) {
+        finish();
+        return;
+    }
+
+    isWorkPhase = false;
+    timeLeft = restTime;
+    updateDisplay(totalRounds);
+    playSound(soundRest);
+
+    interval = setInterval(() => {
+        if (timeLeft <= 1) {
+            clearInterval(interval);
+            timeLeft = 0;
+            updateDisplay(totalRounds);
+            endRestPhase(totalRounds, workTime, restTime, currentRunId);
+            return;
+        }
+
+        timeLeft--;
+        updateDisplay(totalRounds);
+    }, 1000);
+}
+
+function endRestPhase(totalRounds, workTime, restTime, currentRunId) {
+    stopSound(soundRest);
+    isWorkPhase = true;
+    currentRound++;
+    timeLeft = workTime;
+    updateDisplay(totalRounds);
+    playStartCue(() => startWorkPhase(totalRounds, workTime, restTime, currentRunId), currentRunId);
+}
+
+function playSound(sound) {
+    sound.play().catch(error => {
+        console.error('Não foi possível reproduzir o áudio.', error);
+    });
+}
+
+function stopSound(sound) {
+    sound.pause();
+    sound.currentTime = 0;
 }
 
 function updateDisplay(totalRounds) {
@@ -101,21 +158,30 @@ function updateDisplay(totalRounds) {
 }
 
 function finish() {
+    runId++;
     isRunning = false;
     startBtn.disabled = false;
     displayStatus.innerText = "Finalizado!";
     displayTimer.innerText = "00:00";
     document.querySelector('.display').className = "display";
 
-    soundFinish.play(); // Som de finalização
+    stopSound(soundStart);
+    stopSound(soundWork);
+    stopSound(soundRest);
+    playSound(soundFinish);
 
     setTimeout(() => alert("Treino Concluído!"), 500);
 }
 
 function reset() {
+    runId++;
     clearInterval(interval);
     isRunning = false;
     startBtn.disabled = false;
+    stopSound(soundStart);
+    stopSound(soundWork);
+    stopSound(soundRest);
+    stopSound(soundFinish);
     displayStatus.innerText = "Pronto?";
     displayTimer.innerText = "00:00";
     displayRounds.innerText = "Rodada: 0 / 0";
